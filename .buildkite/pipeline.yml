@@ -1,25 +1,71 @@
-steps:
-  - label: ":snake: Generate Sentence"
-    key: "sentence"
-    command:
-      - pip install loremipsum
-      - python -c "import loremipsum; result = loremipsum.sentence(max_char=20); print(result); open('result.txt','w').write(result)"
-      - buildkite-agent annotate "$(cat result.txt)" --style "info" --context "sentence"
-    plugins:
-      - docker#v5.11.0:
-          image: "python:3.11"
-          mount-buildkite-agent: true
-          propagate-environment: true
+# steps:
+#   - label: ":snake: Generate Sentence"
+#     key: "sentence"
+#     command:
+#       - pip install loremipsum
+#       - python -c "import loremipsum; result = loremipsum.sentence(max_char=20); print(result); open('result.txt','w').write(result)"
+#       - buildkite-agent annotate "$(cat result.txt)" --style "info" --context "sentence"
+#     plugins:
+#       - docker#v5.11.0:
+#           image: "python:3.11"
+#           mount-buildkite-agent: true
+#           propagate-environment: true
 
-  - label: ":snake: Generate Paragraph"
-    key: "paragraph"
-    depends_on: "sentence"
-    command:
-      - pip install loremipsum
-      - python -c "import loremipsum; result = loremipsum.paragraph(max_char=100); print(result); open('result2.txt','w').write(result)"
-      - buildkite-agent annotate "$(cat result2.txt)" --style "success" --context "paragraph"
+#   - label: ":snake: Generate Paragraph"
+#     key: "paragraph"
+#     depends_on: "sentence"
+#     command:
+#       - pip install loremipsum
+#       - python -c "import loremipsum; result = loremipsum.paragraph(max_char=100); print(result); open('result2.txt','w').write(result)"
+#       - buildkite-agent annotate "$(cat result2.txt)" --style "success" --context "paragraph"
+#     plugins:
+#       - docker#v5.11.0:
+#           image: "python:3.11"
+#           mount-buildkite-agent: true
+#           propagate-environment: true
+
+
+steps:
+  # Step 1: Generate a sentence and annotate it
+  - label: ":snake: Generate Sentence"
+    key: "generate-sentence"
     plugins:
       - docker#v5.11.0:
-          image: "python:3.11"
-          mount-buildkite-agent: true
-          propagate-environment: true
+          image: "python:3.13"
+    command: |
+      pip install loremipsum --quiet
+      python -c "
+      import loremipsum
+      result = loremipsum.sentence(max_char=20)
+      with open('result.txt', 'w') as f:
+          f.write(result)
+      print(result)
+      "
+      buildkite-agent annotate --style "info" --context "sentence" "$(cat result.txt)"
+
+  # Step 2: Generate a paragraph (only runs if Step 1 succeeds)
+  - label: ":scroll: Generate Paragraph"
+    key: "generate-paragraph"
+    depends_on: "generate-sentence"
+    plugins:
+      - docker#v5.11.0:
+          image: "python:3.13"
+    command: |
+      pip install loremipsum --quiet
+      python -c "
+      import loremipsum
+      result = loremipsum.paragraph(max_char=100)
+      with open('result2.txt', 'w') as f:
+          f.write(result)
+      print(result)
+      "
+      buildkite-agent annotate --style "success" --context "paragraph" "$(cat result2.txt)"
+      # Bonus: upload artifact
+      # buildkite-agent artifact upload result2.txt
+
+  # Bonus Step 3: Download and print the artifact
+  # - label: ":inbox_tray: Download & Print Artifact"
+  #   depends_on: "generate-paragraph"
+  #   command: |
+  #     buildkite-agent artifact download result2.txt .
+  #     cat result2.txt
