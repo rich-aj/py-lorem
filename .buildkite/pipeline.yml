@@ -1,0 +1,23 @@
+steps:
+  - label: ":snake: Generate Sentence"
+    key: "sentence"
+    command:
+      - pip install loremipsum
+      - python -c "import loremipsum; result = loremipsum.sentence(max_char=20); print(result); open('result.txt','w').write(result)"
+      - buildkite-agent annotate "$(cat result.txt)" --style "info" --context "sentence"
+    plugins:
+      - docker#v5.11.0:
+          image: "python:3.13"
+          propagate-environment: true
+
+  - label: ":snake: Generate Paragraph"
+    key: "paragraph"
+    depends_on: "sentence"
+    command:
+      - pip install loremipsum
+      - python -c "import loremipsum; result = loremipsum.paragraph(max_char=100); print(result); open('result2.txt','w').write(result)"
+      - buildkite-agent annotate "$(cat result2.txt)" --style "success" --context "paragraph"
+    plugins:
+      - docker#v5.11.0:
+          image: "python:3.13"
+          propagate-environment: true
