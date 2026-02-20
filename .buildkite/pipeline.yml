@@ -35,8 +35,6 @@ steps:
   - label: ":docker: Build and Push to Package Registry"
     depends_on: "download"
     command:
-      - echo "Token set? $(if [ -n \"$REGISTRY_TOKEN\" ]; then echo YES; else echo NO; fi)"
-      - env | grep -i registry || echo "No REGISTRY vars found"
       - docker build --load -t packages.buildkite.com/$BUILDKITE_ORGANIZATION_SLUG/py-lorem-registry/py-lorem:$BUILDKITE_BUILD_NUMBER .
-      - docker login packages.buildkite.com -u buildkite -p "$REGISTRY_TOKEN"
+      - buildkite-agent secret get REGISTRY_TOKEN | docker login packages.buildkite.com -u buildkite --password-stdin
       - docker push packages.buildkite.com/$BUILDKITE_ORGANIZATION_SLUG/py-lorem-registry/py-lorem:$BUILDKITE_BUILD_NUMBER
