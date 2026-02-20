@@ -32,9 +32,14 @@ steps:
       - buildkite-agent artifact download result2.txt .
       - cat result2.txt
 
-  - label: ":docker: Build and Push to Package Registry"
-    depends_on: "download"
-    command:
-      - docker build --load -t packages.buildkite.com/$BUILDKITE_ORGANIZATION_SLUG/py-lorem-registry/py-lorem:$BUILDKITE_BUILD_NUMBER .
-      - buildkite-agent secret get REGISTRY_TOKEN | docker login packages.buildkite.com -u buildkite --password-stdin
-      - docker push packages.buildkite.com/$BUILDKITE_ORGANIZATION_SLUG/py-lorem-registry/py-lorem:$BUILDKITE_BUILD_NUMBER
+  # - label: ":docker: Build and Push to Package Registry"
+  #   depends_on: "download"
+  #   command:
+  #     - docker build --load -t packages.buildkite.com/$BUILDKITE_ORGANIZATION_SLUG/py-lorem-registry/py-lorem:$BUILDKITE_BUILD_NUMBER .
+  #     - buildkite-agent secret get REGISTRY_TOKEN | docker login packages.buildkite.com -u buildkite --password-stdin
+  #     - docker push packages.buildkite.com/$BUILDKITE_ORGANIZATION_SLUG/py-lorem-registry/py-lorem:$BUILDKITE_BUILD_NUMBER
+
+      #     command:
+      # - docker build -t packages.buildkite.com/$${BUILDKITE_ORGANIZATION_SLUG}/py-lorem-registry/py-lorem:$${BUILDKITE_BUILD_NUMBER} .
+      # - docker login packages.buildkite.com -u buildkite -p $${REGISTRY_TOKEN}
+      # - docker push packages.buildkite.com/$${BUILDKITE_ORGANIZATION_SLUG}/py-lorem-registry/py-lorem:$${BUILDKITE_BUILD_NUMBER}
