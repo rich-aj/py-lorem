@@ -26,7 +26,15 @@ steps:
           propagate-environment: true
   
   - label: ":open_file_folder: Download and Print Artifact"
+    key: "download"
     depends_on: "paragraph"
     command:
       - buildkite-agent artifact download result2.txt .
       - cat result2.txt
+
+  - label: ":docker: Build and Push to Package Registry"
+    depends_on: "download"
+    command:
+      - docker build -t packages.buildkite.com/$${BUILDKITE_ORGANIZATION_SLUG}/py-lorem-registry/py-lorem:$${BUILDKITE_BUILD_NUMBER} .
+      - docker login packages.buildkite.com -u buildkite -p $${REGISTRY_TOKEN}
+      - docker push packages.buildkite.com/$${BUILDKITE_ORGANIZATION_SLUG}/py-lorem-registry/py-lorem:$${BUILDKITE_BUILD_NUMBER}
